@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Math Tools</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap');
+    *{box-sizing:border-box;margin:0;padding:0}
+    :root{--bg:#0f1117;--surface:#181c27;--surface2:#1e2336;--border:#2a3050;--text:#e8eaf6;--muted:#7a84a8;--accent:#6c8eff;--accent2:#4fd1c5;--danger:#f87171;--success:#4ade80;--warn:#fb923c;--mono:'IBM Plex Mono',monospace;--sans:'DM Sans',sans-serif;}
+    body{font-family:var(--sans);background:var(--bg);color:var(--text);height:100vh;overflow:hidden;display:flex;flex-direction:column;}
+    .shell{display:flex;flex:1;overflow:hidden;}
+    .sidebar{width:220px;flex-shrink:0;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;}
+    .logo{padding:16px 16px 10px;border-bottom:1px solid var(--border);}
+    .logo h1{font-size:15px;font-weight:600;color:var(--text);}
+    .logo span{color:var(--accent);font-family:var(--mono);}
+    .logo p{font-size:11px;color:var(--muted);margin-top:2px;}
+    .nav-section{padding:10px 0 4px 12px;font-size:10px;font-weight:600;letter-spacing:.08em;color:var(--muted);text-transform:uppercase;}
+    .nav-item{display:flex;align-items:center;gap:10px;padding:7px 16px;cursor:pointer;font-size:13px;color:var(--muted);transition:background .12s,color .12s;border-left:2px solid transparent;}
+    .nav-item:hover{background:var(--surface2);color:var(--text);}
+    .nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(108,142,255,.08);}
+    .nav-item svg{width:14px;height:14px;flex-shrink:0;opacity:.7;}
+    .nav-item.active svg{opacity:1;}
+    .main{flex:1;overflow-y:auto;padding:24px 28px;}
+    .tool-header{margin-bottom:20px;}
+    .tool-header h2{font-size:19px;font-weight:600;color:var(--text);}
+    .tool-header p{font-size:13px;color:var(--muted);margin-top:3px;}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:14px;}
+    .field{margin-bottom:12px;}
+    .field label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500;}
+    .field input,.field select,.field textarea{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:14px;color:var(--text);font-family:var(--sans);outline:none;transition:border .15s;}
+    .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+    .field select option{background:var(--surface);}
+    textarea{resize:vertical;min-height:72px;}
+    .row{display:flex;gap:10px;}.row .field{flex:1;}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:opacity .15s,transform .1s;font-family:var(--sans);}
+    .btn:active{transform:scale(.97);}
+    .btn-primary{background:var(--accent);color:#fff;}.btn-primary:hover{opacity:.88;}
+    .btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}.btn-secondary:hover{border-color:var(--accent);}
+    .rb{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:12px 14px;font-family:var(--mono);font-size:13px;color:var(--text);margin-top:14px;min-height:44px;white-space:pre-wrap;word-break:break-all;line-height:1.7;}
+    .rb.ok{border-color:var(--success);color:var(--success);}
+    .rb.bad{border-color:var(--danger);color:var(--danger);}
+    .rb.warn{border-color:var(--warn);color:var(--warn);}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+    .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+    .sc{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:10px;text-align:center;}
+    .sc .v{font-size:17px;font-family:var(--mono);font-weight:500;color:var(--accent);margin-bottom:2px;}
+    .sc .l{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;}
+    .tabs{display:flex;gap:4px;margin-bottom:14px;background:var(--bg);padding:4px;border-radius:10px;border:1px solid var(--border);}
+    .tab{flex:1;padding:6px;text-align:center;font-size:12px;font-weight:500;cursor:pointer;border-radius:7px;color:var(--muted);transition:background .12s,color .12s;}
+    .tab.active{background:var(--accent);color:#fff;}
+    .chip{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-family:var(--mono);margin:2px;}
+    .cb{background:rgba(108,142,255,.15);color:#8ba4ff;border:1px solid rgba(108,142,255,.3);}
+    .cg{background:rgba(74,222,128,.1);color:#4ade80;border:1px solid rgba(74,222,128,.25);}
+    .divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+    .tool-page{display:none;}.tool-page.active{display:block;}
+    .topbar{display:flex;align-items:center;gap:12px;padding:10px 18px;border-bottom:1px solid var(--border);background:var(--surface);}
+    .search{flex:1;max-width:240px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--text);outline:none;}
+    .search:focus{border-color:var(--accent);}
+    .badge{background:rgba(108,142,255,.2);color:var(--accent);font-size:11px;padding:2px 8px;border-radius:20px;font-weight:500;}
+    .mi{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:7px;font-size:14px;color:var(--text);font-family:var(--mono);outline:none;text-align:center;width:68px;}
+    .mi:focus{border-color:var(--accent);}
+    .base-row{display:flex;align-items:center;gap:8px;margin-bottom:9px;}
+    .base-tag{background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:10px;font-family:var(--mono);color:var(--muted);min-width:32px;text-align:center;font-weight:600;}
+    .base-input{flex:1;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px 12px;font-size:13px;color:var(--text);font-family:var(--mono);outline:none;}
+    .base-input:focus{border-color:var(--accent);}
+    .pascal-wrap{overflow-x:auto;padding:8px 0;}
+    .pascal-row{display:flex;justify-content:center;gap:3px;margin-bottom:3px;}
+    .pc{min-width:32px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-family:var(--mono);font-weight:500;border:1px solid var(--border);background:var(--surface2);color:var(--muted);}
+    .collatz-chart{display:flex;align-items:flex-end;gap:2px;height:140px;margin-top:12px;padding:8px;background:var(--bg);border:1px solid var(--border);border-radius:8px;overflow-x:auto;}
+    .cbar{min-width:6px;border-radius:3px 3px 0 0;background:var(--accent);opacity:.7;flex-shrink:0;}
+    .cbar:hover{opacity:1;}
+    .tt-table{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12px;margin-top:12px;}
+    .tt-table th{background:var(--surface2);color:var(--muted);padding:6px 10px;border:1px solid var(--border);text-align:center;}
+    .tt-table td{padding:5px 10px;border:1px solid var(--border);text-align:center;}
+    .tt-true{color:var(--success);font-weight:500;}
+    .tt-false{color:var(--danger);}
+    .prime-hero{text-align:center;padding:24px 16px;border-radius:10px;border:1px solid var(--border);background:var(--bg);margin-bottom:14px;transition:border-color .3s;}
+    .prime-hero.is-prime{border-color:var(--success);}
+    .prime-hero.not-prime{border-color:var(--danger);}
+    .prime-verdict{font-size:32px;font-weight:600;font-family:var(--mono);}
+    .prime-hero.is-prime .prime-verdict{color:var(--success);}
+    .prime-hero.not-prime .prime-verdict{color:var(--danger);}
+    .prime-sub{font-size:12px;color:var(--muted);margin-top:4px;}
+    .prime-strip{display:flex;flex-wrap:wrap;gap:3px;margin-top:10px;}
+    .pbox{width:26px;height:26px;border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:9px;font-family:var(--mono);font-weight:500;}
+    .prop-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:7px;margin-top:10px;}
+    .prop-item{background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px 10px;display:flex;align-items:center;gap:7px;}
+    .dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+    .dot.yes{background:var(--success);}.dot.no{background:var(--surface2);border:1px solid var(--border);}
+  </style>
+</head>
+<body>
+
+<div class="topbar">
+  <input class="search" placeholder="Search tools..." id="search" oninput="filterNav(this.value)">
+  <span style="font-size:13px;color:var(--muted);">Math Tools</span>
+  <span class="badge">28 tools</span>
+</div>
+
+<div class="shell">
+<nav class="sidebar">
+  <div class="logo"><h1><span>&#8721;</span> MathTools</h1><p>Handy math for everyone</p></div>
+
+  <div class="nav-section">Numbers</div>
+  <div class="nav-item active" onclick="S('isprime',this)" data-name="is it prime primality">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><path d="M8 5v3l2 2"/></svg>Is it prime?
+  </div>
+  <div class="nav-item" onclick="S('base',this)" data-name="base converter binary hex octal">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="2" width="4" height="4" rx="1"/><rect x="6" y="2" width="4" height="4" rx="1"/><rect x="11" y="2" width="4" height="4" rx="1"/><rect x="1" y="10" width="4" height="4" rx="1"/><rect x="6" y="10" width="4" height="4" rx="1"/></svg>Base converter
+  </div>
+  <div class="nav-item" onclick="S('factors',this)" data-name="prime factorization sieve">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="4" cy="8" r="3"/><circle cx="12" cy="4" r="2"/><circle cx="12" cy="12" r="2"/><line x1="7" y1="8" x2="10" y2="4.5"/><line x1="7" y1="8" x2="10" y2="11.5"/></svg>Factorization
+  </div>
+  <div class="nav-item" onclick="S('numprops',this)" data-name="number properties perfect armstrong palindrome">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="8"/><circle cx="8" cy="11" r=".8" fill="currentColor"/></svg>Number properties
+  </div>
+  <div class="nav-item" onclick="S('roman',this)" data-name="roman numeral converter">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="4" x2="3" y2="12"/><line x1="7" y1="4" x2="7" y2="12"/><line x1="11" y1="4" x2="11" y2="12"/><line x1="1" y1="8" x2="13" y2="8"/></svg>Roman numerals
+  </div>
+  <div class="nav-item" onclick="S('scientific',this)" data-name="scientific notation engineering">
+    <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><text x="1" y="12" font-size="9" fill="currentColor" stroke="none">&#215;10</text></svg>Scientific notation
+  </div>
+  <div class="nav-item" onclick="S('gcd',this)" data-name="gcd lcm"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="14" x2="14" y2="2"/><circle cx="5" cy="5" r="2.5"/><circle cx="11" cy="11" r="2.5"/></svg>GCD / LCM</div>
+  <div class="nav-item" onclick="S('modulo',this)" data-name="modulo remainder"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><text x="1" y="12" font-size="11" fill="currentColor" stroke="none">%</text></svg>Modulo</div>
+  <div class="nav-item" onclick="S('fibonacci',this)" data-name="fibonacci sequence lucas"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14 Q2 2 14 2"/><path d="M2 14 Q8 14 8 8"/><path d="M8 8 Q8 5 11 5"/></svg>Fibonacci</div>
+
+  <div class="nav-section">Math</div>
+  <div class="nav-item" onclick="S('combinatorics',this)" data-name="combinatorics permutation combination factorial"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="3" cy="4" r="2"/><circle cx="13" cy="4" r="2"/><circle cx="3" cy="12" r="2"/><circle cx="13" cy="12" r="2"/><circle cx="8" cy="8" r="2"/><line x1="5" y1="5" x2="6.5" y2="7"/><line x1="11" y1="5" x2="9.5" y2="7"/><line x1="5" y1="11" x2="6.5" y2="9"/><line x1="11" y1="11" x2="9.5" y2="9"/></svg>Combinatorics</div>
+  <div class="nav-item" onclick="S('fraction',this)" data-name="fraction simplify add subtract multiply divide"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="13" x2="13" y2="3"/><circle cx="4.5" cy="11.5" r="2"/><circle cx="11.5" cy="4.5" r="2"/></svg>Fractions</div>
+  <div class="nav-item" onclick="S('log',this)" data-name="logarithm root power"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 13 L4 13 L7 3 L10 13 L13 3"/></svg>Log &amp; roots</div>
+  <div class="nav-item" onclick="S('stats',this)" data-name="statistics mean median mode std dev"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="2" y1="14" x2="14" y2="14"/><line x1="4" y1="10" x2="4" y2="14"/><line x1="8" y1="6" x2="8" y2="14"/><line x1="12" y1="3" x2="12" y2="14"/></svg>Statistics</div>
+  <div class="nav-item" onclick="S('trig',this)" data-name="trigonometry sin cos tan arcsin"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13 L8 3 L14 13 Z"/><line x1="2" y1="13" x2="14" y2="13"/></svg>Trigonometry</div>
+  <div class="nav-item" onclick="S('quadratic',this)" data-name="quadratic equation solver roots discriminant"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 12 Q4 2 8 8 Q12 14 15 4"/></svg>Quadratic solver</div>
+  <div class="nav-item" onclick="S('matrix',this)" data-name="matrix determinant inverse eigenvalues transpose"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="14" height="14" rx="2"/><line x1="6" y1="1" x2="6" y2="15"/><line x1="10" y1="1" x2="10" y2="15"/><line x1="1" y1="6" x2="15" y2="6"/><line x1="1" y1="10" x2="15" y2="10"/></svg>2&#215;2 Matrix</div>
+
+  <div class="nav-section">Geometry</div>
+  <div class="nav-item" onclick="S('shape',this)" data-name="shape area perimeter volume circle rectangle triangle sphere"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="5" cy="11" r="3"/><rect x="8" y="4" width="6" height="6" rx="1"/><path d="M1 14 L5 4 L9 14"/></svg>Shape calculator</div>
+  <div class="nav-item" onclick="S('pythagoras',this)" data-name="pythagorean theorem right triangle hypotenuse legs"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 14 L2 3 L14 14 Z"/><rect x="2" y="11" width="3" height="3"/></svg>Pythagorean theorem</div>
+
+  <div class="nav-section">Finance</div>
+  <div class="nav-item" onclick="S('compound',this)" data-name="compound interest calculator growth investment"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="1,13 5,9 9,11 15,3"/></svg>Compound interest</div>
+  <div class="nav-item" onclick="S('tipsplit',this)" data-name="tip split bill calculator restaurant"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="8" cy="8" r="6"/><line x1="8" y1="5" x2="8" y2="11"/><line x1="5.5" y1="6.5" x2="10.5" y2="6.5"/></svg>Tip &amp; split</div>
+
+  <div class="nav-section">Logic</div>
+  <div class="nav-item" onclick="S('truthtable',this)" data-name="truth table boolean logic AND OR NOT XOR"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="1" width="14" height="14" rx="2"/><line x1="1" y1="5" x2="15" y2="5"/><line x1="1" y1="9" x2="15" y2="9"/><line x1="5" y1="5" x2="5" y2="15"/></svg>Truth table</div>
+  <div class="nav-item" onclick="S('setops',this)" data-name="set operations union intersection difference symmetric"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="8" r="5"/><circle cx="10" cy="8" r="5"/></svg>Set operations</div>
+
+  <div class="nav-section">Statistics+</div>
+  <div class="nav-item" onclick="S('normaldist',this)" data-name="normal distribution bell curve z-score probability cdf"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 13 Q4 13 6 8 Q8 3 8 3 Q8 3 10 8 Q12 13 15 13"/></svg>Normal distribution</div>
+  <div class="nav-item" onclick="S('regression',this)" data-name="linear regression scatter plot R squared slope intercept"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="3" cy="12" r="1.2" fill="currentColor"/><circle cx="6" cy="9" r="1.2" fill="currentColor"/><circle cx="9" cy="7" r="1.2" fill="currentColor"/><circle cx="13" cy="4" r="1.2" fill="currentColor"/><line x1="1" y1="14" x2="15" y2="3"/></svg>Linear regression</div>
+
+  <div class="nav-section">Fun / Visual</div>
+  <div class="nav-item" onclick="S('pascal',this)" data-name="pascal triangle binomial coefficients fibonacci even"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><polygon points="8,2 2,14 14,14"/><line x1="5" y1="8" x2="11" y2="8"/><line x1="8" y1="2" x2="8" y2="14"/></svg>Pascal's triangle</div>
+  <div class="nav-item" onclick="S('collatz',this)" data-name="collatz conjecture sequence 3n+1 hailstone"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 13 Q6 3 8 8 Q10 13 14 4"/></svg>Collatz conjecture</div>
+
+  <div class="nav-section">Conversions</div>
+  <div class="nav-item" onclick="S('percent',this)" data-name="percentage calculator change"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="13" x2="13" y2="3"/><circle cx="4.5" cy="4.5" r="2.5"/><circle cx="11.5" cy="11.5" r="2.5"/></svg>Percentage</div>
+  <div class="nav-item" onclick="S('unit',this)" data-name="unit converter length weight temperature area speed time digital"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 8 L15 8"/><path d="M3 5 L3 11"/><path d="M6 6 L6 10"/><path d="M9 6 L9 10"/><path d="M13 5 L13 11"/></svg>Unit converter</div>
+  <div class="nav-item" onclick="S('rng',this)" data-name="random number generator dice list picker float"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="2" width="12" height="12" rx="3"/><circle cx="5.5" cy="5.5" r="1" fill="currentColor"/><circle cx="10.5" cy="10.5" r="1" fill="currentColor"/><circle cx="10.5" cy="5.5" r="1" fill="currentColor"/><circle cx="5.5" cy="10.5" r="1" fill="currentColor"/></svg>Random generator</div>
+</nav>
+
+<main class="main">
+
+<!-- IS IT PRIME -->
+<div class="tool-page active" id="tool-isprime">
+  <div class="tool-header"><h2>Is it prime?</h2><p>Instant primality check with factor trail and neighborhood</p></div>
+  <div class="card">
+    <div class="field"><input type="number" id="ip-num" placeholder="97" oninput="isItPrime()" style="font-size:20px;padding:11px 14px;font-family:var(--mono);"></div>
+    <div class="prime-hero" id="ip-hero"><div class="prime-verdict" id="ip-verdict">&#8212;</div><div class="prime-sub" id="ip-sub">Enter a number above</div></div>
+    <div id="ip-detail" class="rb" style="display:none;"></div>
+    <div class="divider"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:6px;">Neighborhood &#8212; primes <span style="color:var(--accent);">highlighted</span></div>
+    <div class="prime-strip" id="ip-strip"></div>
+  </div>
+</div>
+
+<!-- BASE CONVERTER -->
+<div class="tool-page" id="tool-base">
+  <div class="tool-header"><h2>Number base converter</h2><p>Binary, octal, decimal, hexadecimal</p></div>
+  <div class="card">
+    <div class="base-row"><span class="base-tag">DEC</span><input class="base-input" id="b-dec" placeholder="255" oninput="cvBase('dec',this.value)"></div>
+    <div class="base-row"><span class="base-tag">BIN</span><input class="base-input" id="b-bin" placeholder="11111111" oninput="cvBase('bin',this.value)"></div>
+    <div class="base-row"><span class="base-tag">OCT</span><input class="base-input" id="b-oct" placeholder="377" oninput="cvBase('oct',this.value)"></div>
+    <div class="base-row"><span class="base-tag">HEX</span><input class="base-input" id="b-hex" placeholder="FF" oninput="cvBase('hex',this.value)"></div>
+    <div class="divider"></div>
+    <div id="b-bits" style="display:flex;gap:3px;flex-wrap:wrap;"></div>
+  </div>
+</div>
+
+<!-- FACTORIZATION -->
+<div class="tool-page" id="tool-factors">
+  <div class="tool-header"><h2>Prime factorization</h2><p>Decompose any number into prime building blocks</p></div>
+  <div class="card">
+    <div class="field"><label>Number</label><input type="number" id="p-num" placeholder="360" oninput="checkFactors()"></div>
+    <div id="p-result" class="rb"></div>
+    <div class="divider"></div>
+    <div class="field"><label>Sieve of Eratosthenes &mdash; all primes up to N</label></div>
+    <div class="row"><div class="field"><input type="number" id="p-sieve" placeholder="100" min="2" max="5000"></div><div class="field" style="flex:none"><button class="btn btn-primary" onclick="sieve()">Generate</button></div></div>
+    <div id="p-sieve-result" style="display:flex;flex-wrap:wrap;gap:4px;margin-top:10px;max-height:150px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- NUMBER PROPERTIES -->
+<div class="tool-page" id="tool-numprops">
+  <div class="tool-header"><h2>Number properties</h2><p>12 properties checked at once</p></div>
+  <div class="card">
+    <div class="field"><input type="number" id="np-num" placeholder="28" oninput="numProps()"></div>
+    <div class="prop-grid" id="np-grid"></div>
+    <div id="np-detail" class="rb" style="margin-top:12px;display:none;font-size:12px;"></div>
+  </div>
+</div>
+
+<!-- ROMAN NUMERALS -->
+<div class="tool-page" id="tool-roman">
+  <div class="tool-header"><h2>Roman numeral converter</h2><p>Convert between Arabic and Roman numerals (1&ndash;3999)</p></div>
+  <div class="card">
+    <div class="row">
+      <div class="field"><label>Arabic number</label><input type="number" id="ro-arabic" placeholder="2024" min="1" max="3999" oninput="arabicToRoman()"></div>
+      <div class="field"><label>Roman numeral</label><input type="text" id="ro-roman" placeholder="MMXXIV" oninput="romanToArabic()" style="text-transform:uppercase;font-family:var(--mono);"></div>
+    </div>
+    <div id="ro-result" class="rb" style="font-size:24px;text-align:center;"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Reference</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">
+      <span class="chip cb">I=1</span><span class="chip cb">V=5</span><span class="chip cb">X=10</span><span class="chip cb">L=50</span><span class="chip cb">C=100</span><span class="chip cb">D=500</span><span class="chip cb">M=1000</span>
+    </div>
+  </div>
+</div>
+
+<!-- SCIENTIFIC NOTATION -->
+<div class="tool-page" id="tool-scientific">
+  <div class="tool-header"><h2>Scientific notation</h2><p>Convert between standard, scientific, and engineering notation</p></div>
+  <div class="card">
+    <div class="field"><label>Standard number</label><input type="text" id="sci-in" placeholder="0.0000045" oninput="toSci()"></div>
+    <div class="grid3" id="sci-cards" style="margin-top:8px;"></div>
+    <div class="divider"></div>
+    <div class="field"><label>From scientific notation (e.g. 4.5e-6)</label><input type="text" id="sci-rev" placeholder="4.5e-6" oninput="fromSci()"></div>
+    <div id="sci-rev-result" class="rb"></div>
+  </div>
+</div>
+
+<!-- GCD/LCM -->
+<div class="tool-page" id="tool-gcd">
+  <div class="tool-header"><h2>GCD / LCM calculator</h2><p>Greatest common divisor and least common multiple</p></div>
+  <div class="card">
+    <div class="field"><label>Numbers (comma-separated)</label><input type="text" id="gcd-nums" placeholder="12, 18, 24" oninput="calcGCDLCM()"></div>
+    <div class="grid2" style="margin-top:14px;"><div class="sc"><div class="v" id="gcd-val">&#8212;</div><div class="l">GCD</div></div><div class="sc"><div class="v" id="lcm-val">&#8212;</div><div class="l">LCM</div></div></div>
+    <div id="gcd-steps" class="rb" style="margin-top:14px;font-size:12px;color:var(--muted);"></div>
+  </div>
+</div>
+
+<!-- MODULO -->
+<div class="tool-page" id="tool-modulo">
+  <div class="tool-header"><h2>Modulo calculator</h2><p>Remainders and modular exponentiation</p></div>
+  <div class="card">
+    <div class="row"><div class="field"><label>Dividend (a)</label><input type="number" id="mod-a" placeholder="17" oninput="calcMod()"></div><div class="field"><label>Divisor (b)</label><input type="number" id="mod-b" placeholder="5" oninput="calcMod()"></div></div>
+    <div id="mod-result" class="rb"></div>
+    <div class="divider"></div>
+    <div class="field"><label>Modular exponentiation &mdash; base^exp mod m</label></div>
+    <div class="row"><div class="field"><label>Base</label><input type="number" id="me-base" placeholder="3"></div><div class="field"><label>Exp</label><input type="number" id="me-exp" placeholder="10"></div><div class="field"><label>Mod</label><input type="number" id="me-mod" placeholder="7"></div></div>
+    <button class="btn btn-primary" onclick="calcModExp()">Calculate</button>
+    <div id="me-result" class="rb" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- FIBONACCI -->
+<div class="tool-page" id="tool-fibonacci">
+  <div class="tool-header"><h2>Fibonacci &amp; sequences</h2><p>Classic, Lucas, and custom sequences</p></div>
+  <div class="card">
+    <div class="tabs"><div class="tab active" onclick="fibTab('fib',this)">Fibonacci</div><div class="tab" onclick="fibTab('lucas',this)">Lucas</div><div class="tab" onclick="fibTab('custom',this)">Custom</div></div>
+    <div id="fib-custom-fields" style="display:none;"><div class="row"><div class="field"><label>Start a</label><input type="number" id="fib-a" value="2"></div><div class="field"><label>Start b</label><input type="number" id="fib-b" value="1"></div></div></div>
+    <div class="field"><label>Number of terms</label><input type="number" id="fib-n" value="15" min="1" max="50" oninput="genFib()"></div>
+    <div id="fib-result" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:10px;"></div>
+    <div class="divider"></div>
+    <div class="row"><div class="field"><label>F(n) index lookup</label><input type="number" id="fib-idx" placeholder="10" min="0" max="78"></div><div class="field" style="flex:none;display:flex;align-items:flex-end;"><button class="btn btn-primary" onclick="fibLookup()">Find</button></div></div>
+    <div id="fib-idx-result" class="rb" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- COMBINATORICS -->
+<div class="tool-page" id="tool-combinatorics">
+  <div class="tool-header"><h2>Combinatorics</h2><p>Permutations, combinations, and factorials</p></div>
+  <div class="card">
+    <div class="row"><div class="field"><label>n</label><input type="number" id="co-n" placeholder="10" min="0" max="20" oninput="calcCombo()"></div><div class="field"><label>r</label><input type="number" id="co-r" placeholder="3" min="0" max="20" oninput="calcCombo()"></div></div>
+    <div class="grid3" id="co-cards" style="margin-top:8px;"></div>
+    <div id="co-detail" class="rb" style="margin-top:12px;font-size:12px;"></div>
+    <div class="divider"></div>
+    <div class="row"><div class="field"><label>n! factorial</label><input type="number" id="fact-n" placeholder="12" min="0" max="170"></div><div class="field" style="flex:none;display:flex;align-items:flex-end;"><button class="btn btn-primary" onclick="calcFact()">Compute</button></div></div>
+    <div id="fact-result" class="rb" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- FRACTIONS -->
+<div class="tool-page" id="tool-fraction">
+  <div class="tool-header"><h2>Fraction calculator</h2><p>Simplify, and arithmetic with fractions</p></div>
+  <div class="card">
+    <div class="tabs"><div class="tab active" onclick="fracTab('simplify',this)">Simplify</div><div class="tab" onclick="fracTab('add',this)">Add</div><div class="tab" onclick="fracTab('sub',this)">Subtract</div><div class="tab" onclick="fracTab('mul',this)">Multiply</div><div class="tab" onclick="fracTab('div',this)">Divide</div></div>
+    <div id="frac-simplify"><div class="row"><div class="field"><label>Numerator</label><input type="number" id="fs-n" placeholder="12" oninput="fracSimplify()"></div><div class="field"><label>Denominator</label><input type="number" id="fs-d" placeholder="18" oninput="fracSimplify()"></div></div><div id="fs-result" class="rb"></div></div>
+    <div id="frac-two" style="display:none;">
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><input type="number" id="ft-n1" placeholder="1" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px;font-size:14px;color:var(--text);outline:none;text-align:center;"><div style="width:60px;height:1px;background:var(--border);"></div><input type="number" id="ft-d1" placeholder="2" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px;font-size:14px;color:var(--text);outline:none;text-align:center;"></div>
+        <span id="frac-op-sym" style="font-size:20px;color:var(--muted);font-family:var(--mono);">+</span>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><input type="number" id="ft-n2" placeholder="1" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px;font-size:14px;color:var(--text);outline:none;text-align:center;"><div style="width:60px;height:1px;background:var(--border);"></div><input type="number" id="ft-d2" placeholder="3" style="width:60px;background:var(--bg);border:1px solid var(--border);border-radius:7px;padding:7px;font-size:14px;color:var(--text);outline:none;text-align:center;"></div>
+        <span style="font-size:20px;color:var(--muted);">=</span>
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;"><div id="ft-rn" style="font-size:20px;font-family:var(--mono);color:var(--accent2);">&#8212;</div><div style="width:48px;height:1px;background:var(--accent2);"></div><div id="ft-rd" style="font-size:20px;font-family:var(--mono);color:var(--accent2);">&#8212;</div></div>
+      </div>
+      <button class="btn btn-primary" onclick="fracTwoCalc()">Calculate</button>
+      <div id="ft-result" class="rb" style="margin-top:10px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- LOG & ROOTS -->
+<div class="tool-page" id="tool-log">
+  <div class="tool-header"><h2>Logarithm &amp; roots</h2><p>Any-base log, nth root, and powers</p></div>
+  <div class="card">
+    <div class="tabs"><div class="tab active" onclick="logTab('log',this)">Logarithm</div><div class="tab" onclick="logTab('root',this)">Nth root</div><div class="tab" onclick="logTab('pow',this)">Powers</div></div>
+    <div id="log-log"><div class="row"><div class="field"><label>Value (x)</label><input type="number" id="log-x" placeholder="100" oninput="calcLog()"></div><div class="field"><label>Base</label><select id="log-base" onchange="calcLog();document.getElementById('log-custom-wrap').style.display=this.value==='custom'?'block':'none'"><option value="10">10 (common)</option><option value="e">e (natural)</option><option value="2">2 (binary)</option><option value="custom">Custom</option></select></div><div class="field" id="log-custom-wrap" style="display:none;"><label>Custom base</label><input type="number" id="log-custom" placeholder="3" oninput="calcLog()"></div></div><div id="log-result" style="padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-top:4px;"><div style="font-size:24px;font-family:var(--mono);color:var(--accent2);" id="log-res-val">&#8212;</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" id="log-res-sub"></div></div></div>
+    <div id="log-root" style="display:none;"><div class="row"><div class="field"><label>Value (x)</label><input type="number" id="root-x" placeholder="64" oninput="calcRoot()"></div><div class="field"><label>Root (n)</label><input type="number" id="root-n" placeholder="3" min="1" oninput="calcRoot()"></div></div><div id="root-result" style="padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-top:4px;"><div style="font-size:24px;font-family:var(--mono);color:var(--accent2);" id="root-res-val">&#8212;</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" id="root-res-sub"></div></div></div>
+    <div id="log-pow" style="display:none;"><div class="row"><div class="field"><label>Base</label><input type="number" id="pow-base" placeholder="2" oninput="calcPow()"></div><div class="field"><label>Exponent</label><input type="number" id="pow-exp" placeholder="10" oninput="calcPow()"></div></div><div id="pow-result" style="padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;margin-top:4px;"><div style="font-size:24px;font-family:var(--mono);color:var(--accent2);" id="pow-res-val">&#8212;</div><div style="font-size:12px;color:var(--muted);margin-top:3px;" id="pow-res-sub"></div></div></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div class="tool-page" id="tool-stats">
+  <div class="tool-header"><h2>Statistics calculator</h2><p>Full descriptive statistics for a dataset</p></div>
+  <div class="card"><div class="field"><label>Dataset (space or comma separated)</label><textarea id="stat-data" placeholder="4 8 15 16 23 42" oninput="calcStats()"></textarea></div><div id="stat-cards" class="grid3" style="margin-top:14px;"></div><div id="stat-extra" class="rb" style="margin-top:14px;font-size:12px;"></div></div>
+</div>
+
+<!-- TRIG -->
+<div class="tool-page" id="tool-trig">
+  <div class="tool-header"><h2>Trigonometry calculator</h2><p>Six trig functions and their inverses</p></div>
+  <div class="card">
+    <div class="row"><div class="field"><label>Angle</label><input type="number" id="trig-ang" placeholder="45" oninput="calcTrig()"></div><div class="field"><label>Unit</label><select id="trig-unit" onchange="calcTrig()"><option value="deg">Degrees</option><option value="rad">Radians</option></select></div></div>
+    <div class="grid3" id="trig-cards" style="margin-top:14px;"></div>
+    <div class="divider"></div>
+    <div class="row"><div class="field"><label>Value</label><input type="number" id="inv-val" placeholder="0.5" step="0.01"></div><div class="field"><label>Function</label><select id="inv-fn"><option>arcsin</option><option>arccos</option><option>arctan</option></select></div><div class="field" style="flex:none;display:flex;align-items:flex-end;"><button class="btn btn-primary" onclick="calcInv()">Compute</button></div></div>
+    <div id="inv-result" class="rb" style="margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- QUADRATIC -->
+<div class="tool-page" id="tool-quadratic">
+  <div class="tool-header"><h2>Quadratic equation solver</h2><p>Solve ax&sup2; + bx + c = 0</p></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+      <input type="number" id="q-a" placeholder="a" style="width:65px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:14px;color:var(--text);outline:none;" oninput="solveQuad()">
+      <span style="color:var(--muted);font-family:var(--mono);font-size:13px;">x&sup2; +</span>
+      <input type="number" id="q-b" placeholder="b" style="width:65px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:14px;color:var(--text);outline:none;" oninput="solveQuad()">
+      <span style="color:var(--muted);font-family:var(--mono);font-size:13px;">x +</span>
+      <input type="number" id="q-c" placeholder="c" style="width:65px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:14px;color:var(--text);outline:none;" oninput="solveQuad()">
+      <span style="color:var(--muted);font-family:var(--mono);font-size:13px;">= 0</span>
+    </div>
+    <div id="q-result" class="rb"></div>
+  </div>
+</div>
+
+<!-- MATRIX -->
+<div class="tool-page" id="tool-matrix">
+  <div class="tool-header"><h2>2&times;2 Matrix calculator</h2><p>Determinant, inverse, transpose, and eigenvalues</p></div>
+  <div class="card">
+    <div class="tabs"><div class="tab active" onclick="matTab('single',this)">Single</div><div class="tab" onclick="matTab('two',this)">Two matrices</div></div>
+    <div id="mat-single"><div style="display:flex;gap:8px;align-items:center;margin-bottom:14px;"><span style="color:var(--muted);font-size:20px;">[</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;"><input class="mi" id="m-a" placeholder="1"><input class="mi" id="m-b" placeholder="2"><input class="mi" id="m-c" placeholder="3"><input class="mi" id="m-d" placeholder="4"></div><span style="color:var(--muted);font-size:20px;">]</span></div><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-primary" onclick="matCalc('det')">Det</button><button class="btn btn-secondary" onclick="matCalc('inv')">Inverse</button><button class="btn btn-secondary" onclick="matCalc('tr')">Transpose</button><button class="btn btn-secondary" onclick="matCalc('eig')">Eigenvalues</button></div></div>
+    <div id="mat-two" style="display:none;"><div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:14px;"><div style="display:flex;gap:4px;align-items:center;"><span style="color:var(--muted);font-size:18px;">[</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;"><input class="mi" id="p-a" placeholder="1"><input class="mi" id="p-b" placeholder="0"><input class="mi" id="p-c" placeholder="0"><input class="mi" id="p-d" placeholder="1"></div><span style="color:var(--muted);font-size:18px;">]</span></div><select id="mat-op" style="background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:7px;color:var(--text);font-size:14px;outline:none;"><option value="add">+</option><option value="sub">&minus;</option><option value="mul">&times;</option></select><div style="display:flex;gap:4px;align-items:center;"><span style="color:var(--muted);font-size:18px;">[</span><div style="display:grid;grid-template-columns:1fr 1fr;gap:5px;"><input class="mi" id="q-a2" placeholder="1"><input class="mi" id="q-b2" placeholder="0"><input class="mi" id="q-c2" placeholder="0"><input class="mi" id="q-d2" placeholder="1"></div><span style="color:var(--muted);font-size:18px;">]</span></div><button class="btn btn-primary" onclick="matTwoCalc()">=</button></div></div>
+    <div id="mat-result" class="rb" style="margin-top:14px;"></div>
+  </div>
+</div>
+
+<!-- SHAPE CALCULATOR -->
+<div class="tool-page" id="tool-shape">
+  <div class="tool-header"><h2>Shape calculator</h2><p>Area, perimeter, and volume for common shapes</p></div>
+  <div class="card">
+    <div class="field"><label>Shape</label><select id="sh-type" onchange="updateShapeInputs()"><option value="circle">Circle</option><option value="rectangle">Rectangle</option><option value="triangle">Triangle (by sides)</option><option value="sphere">Sphere</option><option value="cylinder">Cylinder</option><option value="cone">Cone</option><option value="trapezoid">Trapezoid</option><option value="ellipse">Ellipse</option></select></div>
+    <div id="sh-inputs"></div>
+    <button class="btn btn-primary" onclick="calcShape()" style="margin-top:4px;">Calculate</button>
+    <div id="sh-result" class="rb" style="margin-top:12px;"></div>
+  </div>
+</div>
+
+<!-- PYTHAGOREAN -->
+<div class="tool-page" id="tool-pythagoras">
+  <div class="tool-header"><h2>Pythagorean theorem</h2><p>Fill any two sides &mdash; the third is calculated</p></div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:center;gap:20px;padding:16px 0;flex-wrap:wrap;">
+      <div style="text-align:center;"><div style="font-size:11px;color:var(--muted);margin-bottom:6px;">a (leg)</div><input type="number" id="py-a" placeholder="?" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px;font-size:16px;color:var(--text);outline:none;text-align:center;font-family:var(--mono);" oninput="calcPyth()"></div>
+      <div style="font-size:18px;color:var(--muted);font-family:var(--mono);">&sup2; + </div>
+      <div style="text-align:center;"><div style="font-size:11px;color:var(--muted);margin-bottom:6px;">b (leg)</div><input type="number" id="py-b" placeholder="?" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px;font-size:16px;color:var(--text);outline:none;text-align:center;font-family:var(--mono);" oninput="calcPyth()"></div>
+      <div style="font-size:18px;color:var(--muted);font-family:var(--mono);">&sup2; = </div>
+      <div style="text-align:center;"><div style="font-size:11px;color:var(--muted);margin-bottom:6px;">c (hypotenuse)</div><input type="number" id="py-c" placeholder="?" style="width:80px;background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:9px;font-size:16px;color:var(--text);outline:none;text-align:center;font-family:var(--mono);" oninput="calcPyth()"></div>
+      <div style="font-size:18px;color:var(--muted);font-family:var(--mono);">&sup2;</div>
+    </div>
+    <div id="py-result" class="rb"></div>
+    <div class="divider"></div>
+    <div style="font-size:12px;color:var(--muted);">Common triples: (3,4,5) &nbsp; (5,12,13) &nbsp; (8,15,17) &nbsp; (7,24,25)</div>
+  </div>
+</div>
+
+<!-- COMPOUND INTEREST -->
+<div class="tool-page" id="tool-compound">
+  <div class="tool-header"><h2>Compound interest</h2><p>Watch your investment grow over time</p></div>
+  <div class="card">
+    <div class="row"><div class="field"><label>Principal ($)</label><input type="number" id="ci-p" placeholder="10000" oninput="calcCI()"></div><div class="field"><label>Annual rate (%)</label><input type="number" id="ci-r" placeholder="7" step="0.1" oninput="calcCI()"></div></div>
+    <div class="row"><div class="field"><label>Years</label><input type="number" id="ci-t" placeholder="20" oninput="calcCI()"></div><div class="field"><label>Compounding</label><select id="ci-n" onchange="calcCI()"><option value="1">Annually</option><option value="2">Semi-annually</option><option value="4">Quarterly</option><option value="12" selected>Monthly</option><option value="365">Daily</option></select></div></div>
+    <div class="grid3" id="ci-cards" style="margin-top:4px;"></div>
+    <svg id="ci-svg" viewBox="0 0 420 160" style="width:100%;margin-top:12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);"></svg>
+  </div>
+</div>
+
+<!-- TIP & SPLIT -->
+<div class="tool-page" id="tool-tipsplit">
+  <div class="tool-header"><h2>Tip &amp; bill splitter</h2><p>Split any bill with any tip across any group</p></div>
+  <div class="card">
+    <div class="row"><div class="field"><label>Bill amount ($)</label><input type="number" id="ts-bill" placeholder="85.00" step="0.01" oninput="calcTip()"></div><div class="field"><label>Tip (%)</label><input type="number" id="ts-tip" value="18" min="0" max="100" oninput="calcTip()"></div><div class="field"><label>People</label><input type="number" id="ts-ppl" value="4" min="1" oninput="calcTip()"></div></div>
+    <div style="display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;">
+      <button class="btn btn-secondary" style="padding:5px 12px;font-size:12px;" onclick="setTip(10)">10%</button>
+      <button class="btn btn-secondary" style="padding:5px 12px;font-size:12px;" onclick="setTip(15)">15%</button>
+      <button class="btn btn-secondary" style="padding:5px 12px;font-size:12px;" onclick="setTip(18)">18%</button>
+      <button class="btn btn-secondary" style="padding:5px 12px;font-size:12px;" onclick="setTip(20)">20%</button>
+      <button class="btn btn-secondary" style="padding:5px 12px;font-size:12px;" onclick="setTip(25)">25%</button>
+    </div>
+    <div class="grid3" id="ts-cards"></div>
+  </div>
+</div>
+
+<!-- TRUTH TABLE -->
+<div class="tool-page" id="tool-truthtable">
+  <div class="tool-header"><h2>Truth table generator</h2><p>Evaluate boolean expressions with up to 4 variables (A&ndash;D)</p></div>
+  <div class="card">
+    <div class="field"><label>Expression</label><input type="text" id="tt-expr" placeholder="(A AND B) OR NOT C" oninput="buildTruthTable()"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Operators: AND &nbsp; OR &nbsp; NOT &nbsp; XOR &nbsp; XNOR &nbsp; ( )</div>
+    <div id="tt-result" style="overflow-x:auto;"></div>
+  </div>
+</div>
+
+<!-- SET OPERATIONS -->
+<div class="tool-page" id="tool-setops">
+  <div class="tool-header"><h2>Set operations</h2><p>Union, intersection, difference, symmetric difference</p></div>
+  <div class="card">
+    <div class="row"><div class="field"><label>Set A (comma-separated)</label><input type="text" id="so-a" placeholder="1, 2, 3, 4, 5" oninput="calcSets()"></div><div class="field"><label>Set B</label><input type="text" id="so-b" placeholder="3, 4, 5, 6, 7" oninput="calcSets()"></div></div>
+    <div id="so-result"></div>
+  </div>
+</div>
+
+<!-- NORMAL DISTRIBUTION -->
+<div class="tool-page" id="tool-normaldist">
+  <div class="tool-header"><h2>Normal distribution</h2><p>Z-scores, probabilities, and bell curve visualization</p></div>
+  <div class="card">
+    <div class="row"><div class="field"><label>Mean (&mu;)</label><input type="number" id="nd-mu" value="0" step="0.1" oninput="calcNorm()"></div><div class="field"><label>Std deviation (&sigma;)</label><input type="number" id="nd-sigma" value="1" step="0.1" min="0.001" oninput="calcNorm()"></div><div class="field"><label>x value</label><input type="number" id="nd-x" value="1" step="0.1" oninput="calcNorm()"></div></div>
+    <div class="grid3" id="nd-cards" style="margin-top:4px;"></div>
+    <svg id="nd-svg" viewBox="0 0 420 140" style="width:100%;margin-top:12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);"></svg>
+  </div>
+</div>
+
+<!-- LINEAR REGRESSION -->
+<div class="tool-page" id="tool-regression">
+  <div class="tool-header"><h2>Linear regression</h2><p>Paste x,y pairs &mdash; one per line</p></div>
+  <div class="card">
+    <div class="field"><label>Data (x,y pairs &mdash; one per line or space separated)</label><textarea id="lr-data" placeholder="1,2&#10;2,4&#10;3,5.5&#10;4,8&#10;5,9.5" oninput="calcRegression()"></textarea></div>
+    <div class="grid3" id="lr-cards" style="margin-top:4px;"></div>
+    <svg id="lr-svg" viewBox="0 0 420 200" style="width:100%;margin-top:12px;border-radius:8px;background:var(--bg);border:1px solid var(--border);"></svg>
+    <div id="lr-eq" class="rb" style="margin-top:10px;font-size:13px;display:none;"></div>
+  </div>
+</div>
+
+<!-- PASCAL'S TRIANGLE -->
+<div class="tool-page" id="tool-pascal">
+  <div class="tool-header"><h2>Pascal's triangle</h2><p>Binomial coefficients with pattern highlights</p></div>
+  <div class="card">
+    <div class="row">
+      <div class="field"><label>Rows (max 16)</label><input type="number" id="pas-n" value="10" min="1" max="16" oninput="buildPascal()"></div>
+      <div class="field"><label>Highlight</label><select id="pas-hl" onchange="buildPascal()"><option value="none">None</option><option value="even">Even numbers</option><option value="fib">Fibonacci values</option><option value="pow2">Row sums (powers of 2)</option></select></div>
+    </div>
+    <div class="pascal-wrap" id="pas-wrap"></div>
+    <div id="pas-info" class="rb" style="margin-top:10px;font-size:12px;display:none;"></div>
+  </div>
+</div>
+
+<!-- COLLATZ CONJECTURE -->
+<div class="tool-page" id="tool-collatz">
+  <div class="tool-header"><h2>Collatz conjecture</h2><p>Every sequence eventually reaches 1 &mdash; watch it happen</p></div>
+  <div class="card">
+    <div class="field"><label>Starting number</label><input type="number" id="col-n" placeholder="27" min="1" oninput="runCollatz()"></div>
+    <div class="grid3" id="col-cards" style="margin-top:4px;"></div>
+    <div class="collatz-chart" id="col-chart"></div>
+    <div id="col-seq" class="rb" style="margin-top:10px;font-size:11px;max-height:80px;overflow-y:auto;color:var(--muted);"></div>
+  </div>
+</div>
+
+<!-- PERCENTAGE -->
+<div class="tool-page" id="tool-percent">
+  <div class="tool-header"><h2>Percentage calculator</h2><p>Three common percentage operations</p></div>
+  <div class="card">
+    <div class="tabs" id="pct-tabs"><div class="tab active" onclick="pctTab(0,this)">% of</div><div class="tab" onclick="pctTab(1,this)">is what %</div><div class="tab" onclick="pctTab(2,this)">change</div></div>
+    <div id="pct-panel-0"><div class="row"><div class="field"><label>Percentage</label><input type="number" id="pct0-p" placeholder="20" oninput="calcPct0()"></div><div class="field"><label>of value</label><input type="number" id="pct0-v" placeholder="150" oninput="calcPct0()"></div></div><div id="pct0-r" class="rb"></div></div>
+    <div id="pct-panel-1" style="display:none;"><div class="row"><div class="field"><label>Value</label><input type="number" id="pct1-a" placeholder="30" oninput="calcPct1()"></div><div class="field"><label>is what % of</label><input type="number" id="pct1-b" placeholder="150" oninput="calcPct1()"></div></div><div id="pct1-r" class="rb"></div></div>
+    <div id="pct-panel-2" style="display:none;"><div class="row"><div class="field"><label>From</label><input type="number" id="pct2-a" placeholder="80" oninput="calcPct2()"></div><div class="field"><label>To</label><input type="number" id="pct2-b" placeholder="100" oninput="calcPct2()"></div></div><div id="pct2-r" class="rb"></div></div>
+  </div>
+</div>
+
+<!-- UNIT CONVERTER -->
+<div class="tool-page" id="tool-unit">
+  <div class="tool-header"><h2>Unit converter</h2><p>Length, mass, temperature, area, speed, time, digital</p></div>
+  <div class="card">
+    <div class="field"><label>Category</label><select id="uc-cat" onchange="updateUnitLists()"><option value="length">Length</option><option value="mass">Mass</option><option value="temp">Temperature</option><option value="area">Area</option><option value="speed">Speed</option><option value="time">Time</option><option value="digital">Digital storage</option></select></div>
+    <div class="row"><div class="field"><label>Value</label><input type="number" id="uc-val" placeholder="1" oninput="convertUnit()"></div><div class="field"><label>From</label><select id="uc-from" onchange="convertUnit()"></select></div><div class="field"><label>To</label><select id="uc-to" onchange="convertUnit()"></select></div></div>
+    <div style="margin-top:14px;padding:14px;background:var(--bg);border:1px solid var(--border);border-radius:8px;"><div style="font-family:var(--mono);font-size:22px;color:var(--accent2);" id="uc-res-val">&#8212;</div><div style="font-size:13px;color:var(--muted);margin-top:4px;" id="uc-res-from"></div></div>
+  </div>
+</div>
+
+<!-- RANDOM GENERATOR -->
+<div class="tool-page" id="tool-rng">
+  <div class="tool-header"><h2>Random generator</h2><p>Integers, floats, dice, and list picker</p></div>
+  <div class="card">
+    <div class="tabs"><div class="tab active" onclick="rngTab('int',this)">Integer</div><div class="tab" onclick="rngTab('float',this)">Float</div><div class="tab" onclick="rngTab('dice',this)">Dice</div><div class="tab" onclick="rngTab('list',this)">From list</div></div>
+    <div id="rng-int"><div class="row"><div class="field"><label>Min</label><input type="number" id="rng-min" value="1"></div><div class="field"><label>Max</label><input type="number" id="rng-max" value="100"></div><div class="field"><label>Count</label><input type="number" id="rng-count" value="1" min="1" max="50"></div></div><button class="btn btn-primary" onclick="rngGenInt()">Generate</button></div>
+    <div id="rng-float" style="display:none;"><div class="row"><div class="field"><label>Min</label><input type="number" id="rngf-min" value="0" step="0.01"></div><div class="field"><label>Max</label><input type="number" id="rngf-max" value="1" step="0.01"></div><div class="field"><label>Decimals</label><input type="number" id="rngf-dec" value="4" min="1" max="10"></div></div><button class="btn btn-primary" onclick="rngGenFloat()">Generate</button></div>
+    <div id="rng-dice" style="display:none;"><div class="row"><div class="field"><label>Dice type</label><select id="dice-type"><option value="4">d4</option><option value="6" selected>d6</option><option value="8">d8</option><option value="10">d10</option><option value="12">d12</option><option value="20">d20</option><option value="100">d100</option></select></div><div class="field"><label>Count</label><input type="number" id="dice-count" value="2" min="1" max="20"></div></div><button class="btn btn-primary" onclick="rollDice()">Roll!</button><div id="dice-faces" style="display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;"></div></div>
+    <div id="rng-list" style="display:none;"><div class="field"><label>Items (comma-separated)</label><input type="text" id="rng-items" placeholder="Alice, Bob, Carol, Dave"></div><div class="row"><div class="field"><label>Pick count</label><input type="number" id="rng-pick" value="1" min="1"></div><div class="field" style="flex:none;display:flex;align-items:flex-end;"><button class="btn btn-primary" onclick="rngPick()">Pick</button></div></div></div>
+    <div id="rng-big" style="font-size:44px;font-family:var(--mono);font-weight:500;color:var(--accent);text-align:center;padding:20px;display:none;"></div>
+    <div id="rng-result" class="rb" style="display:none;"></div>
+  </div>
+</div>
+
+</main>
+</div>
+
+<script>
+function S(id,el){document.querySelectorAll('.tool-page').forEach(p=>p.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));document.getElementById('tool-'+id).classList.add('active');el.classList.add('active');}
+function filterNav(q){document.querySelectorAll('.nav-item').forEach(i=>{i.style.display=(!q||i.dataset.name&&i.dataset.name.includes(q.toLowerCase()))?'':'none';});}
+function isPrime(n){if(n<2)return false;if(n<4)return true;if(n%2===0||n%3===0)return false;for(let i=5;i*i<=n;i+=6)if(n%i===0||n%(i+2)===0)return false;return true;}
+function primeFactors(n){const f=[];let d=2;while(d*d<=n){while(n%d===0){f.push(d);n/=d;}d++;}if(n>1)f.push(n);return f;}
+function prevPrime(n){for(let i=n-1;i>=2;i--)if(isPrime(i))return i;return null;}
+function nextPrime(n){for(let i=n+1;i<n+10000;i++)if(isPrime(i))return i;}
+function countDivisors(n){let c=0;for(let i=1;i*i<=n;i++)if(n%i===0)c+=(i===n/i?1:2);return c;}
+function isItPrime(){
+  const n=parseInt(document.getElementById('ip-num').value);
+  const hero=document.getElementById('ip-hero'),verdict=document.getElementById('ip-verdict'),sub=document.getElementById('ip-sub'),detail=document.getElementById('ip-detail'),strip=document.getElementById('ip-strip');
+  if(isNaN(n)||document.getElementById('ip-num').value===''){hero.className='prime-hero';verdict.textContent='—';sub.textContent='Enter a number above';detail.style.display='none';strip.innerHTML='';return;}
+  const prime=isPrime(n);
+  hero.className='prime-hero '+(prime?'is-prime':'not-prime');
+  if(n<2){verdict.textContent=String(n);sub.textContent='Neither prime nor composite';detail.style.display='none';}
+  else if(prime){verdict.textContent=n.toLocaleString()+' is PRIME';sub.textContent='prev: '+prevPrime(n)+' • next: '+nextPrime(n);detail.style.display='none';}
+  else{const f=primeFactors(n);verdict.textContent=n.toLocaleString()+' is NOT prime';sub.textContent='Composite • smallest factor: '+f[0];detail.style.display='block';detail.className='rb';detail.textContent=n+' = '+f.join(' × ')+'\nDivisors count: '+countDivisors(n);}
+  const lo=Math.max(2,n-20),hi=n+20;strip.innerHTML='';
+  for(let i=lo;i<=hi;i++){const p=isPrime(i);const b=document.createElement('span');b.className='pbox';b.textContent=i;b.title=p?i+' is prime':i+' is composite';if(i===n){b.style.background=p?'rgba(74,222,128,.3)':'rgba(248,113,113,.3)';b.style.color=p?'var(--success)':'var(--danger)';b.style.border='1px solid '+(p?'var(--success)':'var(--danger)');b.style.fontWeight='600';}else if(p){b.style.background='rgba(108,142,255,.2)';b.style.color='var(--accent)';b.style.border='1px solid rgba(108,142,255,.35)';}else{b.style.background='var(--surface2)';b.style.color='var(--muted)';b.style.border='1px solid var(--border)';}strip.appendChild(b);}
+}
+function sumDivs(n){let s=0;for(let i=1;i<=n/2;i++)if(n%i===0)s+=i;return s;}
+function getDivs(n){const d=[];for(let i=1;i<=n;i++)if(n%i===0)d.push(i);return d;}
+function isPerfectSquare(n){const s=Math.round(Math.sqrt(n));return s*s===n;}
+function numProps(){
+  const n=parseInt(document.getElementById('np-num').value),g=document.getElementById('np-grid'),d=document.getElementById('np-detail');
+  if(isNaN(n)){g.innerHTML='';d.style.display='none';return;}
+  const abs=Math.abs(n),sd=sumDivs(abs);
+  const props=[
+    {name:'Prime',yes:isPrime(abs)},{name:'Even',yes:n%2===0},{name:'Odd',yes:n%2!==0},
+    {name:'Perfect',yes:abs>1&&sd===abs},{name:'Armstrong',yes:(()=>{const ds=abs.toString().split(''),p=ds.length;return ds.reduce((a,c)=>a+Math.pow(parseInt(c),p),0)===abs;})()},
+    {name:'Palindrome',yes:abs.toString()===abs.toString().split('').reverse().join('')},
+    {name:'Fibonacci',yes:isPerfectSquare(5*abs*abs+4)||isPerfectSquare(5*abs*abs-4)},
+    {name:'Triangular',yes:isPerfectSquare(1+8*abs)},
+    {name:'Perfect square',yes:isPerfectSquare(abs)},{name:'Perfect cube',yes:Number.isInteger(Math.cbrt(abs))},
+    {name:'Abundant',yes:sd>abs},{name:'Deficient',yes:sd<abs&&!(abs>1&&sd===abs)},
+  ];
+  g.innerHTML=props.map(p=>`<div class="prop-item"><div class="dot ${p.yes?'yes':'no'}"></div><div><div style="font-size:12px;">${p.name}</div><div style="font-size:11px;color:var(--muted);">${p.yes?'Yes':'No'}</div></div></div>`).join('');
+  d.style.display='block';d.className='rb';
+  const divs=getDivs(abs);
+  d.textContent='Divisors ('+divs.length+'): '+divs.join(', ')+'\nDigit sum: '+abs.toString().split('').reduce((a,b)=>a+parseInt(b),0);
+}
+function cvBase(from,val){if(!val)return;let n;try{if(from==='dec')n=parseInt(val,10);else if(from==='bin')n=parseInt(val,2);else if(from==='oct')n=parseInt(val,8);else n=parseInt(val,16);if(isNaN(n))return;}catch(e){return;}if(from!=='dec')document.getElementById('b-dec').value=n;if(from!=='bin')document.getElementById('b-bin').value=n.toString(2);if(from!=='oct')document.getElementById('b-oct').value=n.toString(8);if(from!=='hex')document.getElementById('b-hex').value=n.toString(16).toUpperCase();const bits=document.getElementById('b-bits');const b=n.toString(2).padStart(Math.max(8,Math.ceil(n.toString(2).length/8)*8),'0');bits.innerHTML=b.split('').map(c=>`<span style="width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:5px;font-family:var(--mono);font-size:12px;font-weight:500;background:${c==='1'?'rgba(108,142,255,.25)':'var(--surface2)'};color:${c==='1'?'var(--accent)':'var(--muted)'};border:1px solid ${c==='1'?'rgba(108,142,255,.4)':'var(--border)'};">${c}</span>`).join('');}
+function checkFactors(){const n=parseInt(document.getElementById('p-num').value),r=document.getElementById('p-result');if(!n||n<1){r.textContent='';r.className='rb';return;}const f=primeFactors(n);if(f.length===1&&f[0]===n){r.className='rb ok';r.textContent=n+' is PRIME';}else{r.className='rb';r.textContent=n+' = '+f.join(' × ');}}
+function sieve(){const n=Math.min(parseInt(document.getElementById('p-sieve').value)||100,5000);const sv=new Array(n+1).fill(true);sv[0]=sv[1]=false;for(let i=2;i*i<=n;i++)if(sv[i])for(let j=i*i;j<=n;j+=i)sv[j]=false;const primes=[];for(let i=2;i<=n;i++)if(sv[i])primes.push(i);document.getElementById('p-sieve-result').innerHTML=primes.map(p=>`<span class="chip cb">${p}</span>`).join('');}
+const RV=[1000,900,500,400,100,90,50,40,10,9,5,4,1];const RS=['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I'];
+function toRoman(n){if(n<1||n>3999)return null;let r='';RV.forEach((v,i)=>{while(n>=v){r+=RS[i];n-=v;}});return r;}
+function fromRoman(s){const map={I:1,V:5,X:10,L:50,C:100,D:500,M:1000};let r=0;for(let i=0;i<s.length;i++){const c=map[s[i]],nx=map[s[i+1]];r+=nx&&c<nx?-c:c;}return r;}
+function arabicToRoman(){const n=parseInt(document.getElementById('ro-arabic').value),r=document.getElementById('ro-result');if(isNaN(n)||n<1||n>3999){r.className='rb bad';r.textContent='Enter 1–3999';return;}document.getElementById('ro-roman').value='';r.className='rb ok';r.textContent=toRoman(n);}
+function romanToArabic(){const s=document.getElementById('ro-roman').value.toUpperCase().trim(),r=document.getElementById('ro-result');if(!s){r.textContent='';return;}const n=fromRoman(s);document.getElementById('ro-arabic').value='';if(!n||n<1){r.className='rb bad';r.textContent='Invalid Roman numeral';return;}r.className='rb ok';r.textContent=n;}
+function toSci(){const raw=document.getElementById('sci-in').value.trim(),n=parseFloat(raw),c=document.getElementById('sci-cards');if(isNaN(n)||raw===''){c.innerHTML='';return;}const e=parseInt(n.toExponential().split('e')[1]);const engExp=Math.floor(e/3)*3;const engCoef=n/Math.pow(10,engExp);c.innerHTML=[{v:n.toLocaleString(),l:'Standard'},{v:parseFloat(n.toExponential(6)).toExponential(),l:'Scientific'},{v:`${engCoef.toFixed(4)} × 10^${engExp}`,l:'Engineering'}].map(({v,l})=>`<div class="sc"><div class="v" style="font-size:13px;word-break:break-all;">${v}</div><div class="l">${l}</div></div>`).join('');}
+function fromSci(){const s=document.getElementById('sci-rev').value.trim(),r=document.getElementById('sci-rev-result'),n=parseFloat(s);if(isNaN(n)){r.textContent='';return;}r.className='rb';r.textContent='= '+n.toLocaleString();}
+function gcd(a,b){while(b){[a,b]=[b,a%b];}return a;}
+function lcm(a,b){return a/gcd(a,b)*b;}
+function calcGCDLCM(){const nums=document.getElementById('gcd-nums').value.split(/[\s,]+/).map(Number).filter(n=>!isNaN(n)&&n>0);if(nums.length<2){document.getElementById('gcd-val').textContent='—';document.getElementById('lcm-val').textContent='—';return;}let g=nums[0],l=nums[0],steps=['GCD steps:'];for(let i=1;i<nums.length;i++){steps.push('  gcd('+g+','+nums[i]+')='+gcd(g,nums[i]));g=gcd(g,nums[i]);l=lcm(l,nums[i]);}document.getElementById('gcd-val').textContent=g;document.getElementById('lcm-val').textContent=l;document.getElementById('gcd-steps').textContent=steps.join('\n')+'\n\nGCD='+g+'  LCM='+l;}
+function calcMod(){const a=parseFloat(document.getElementById('mod-a').value),b=parseFloat(document.getElementById('mod-b').value),r=document.getElementById('mod-result');if(isNaN(a)||isNaN(b)){r.textContent='';return;}if(b===0){r.className='rb bad';r.textContent='Division by zero';return;}const rem=((a%b)+b)%b;r.className='rb';r.textContent=a+' mod '+b+' = '+rem+'\n'+a+' = '+Math.trunc(a/b)+' × '+b+' + '+rem;}
+function calcModExp(){const base=BigInt(document.getElementById('me-base').value||0),exp=BigInt(document.getElementById('me-exp').value||0),mod=BigInt(document.getElementById('me-mod').value||1),r=document.getElementById('me-result');if(mod===0n){r.className='rb bad';r.textContent='Mod ≠ 0';return;}let res=1n,b=base%mod,e=exp;while(e>0n){if(e%2n===1n)res=res*b%mod;e=e/2n;b=b*b%mod;}r.className='rb';r.textContent=base+'^'+exp+' mod '+mod+' = '+res;}
+let fibMode='fib';
+function fibTab(m,el){fibMode=m;document.querySelectorAll('#tool-fibonacci .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('fib-custom-fields').style.display=m==='custom'?'block':'none';genFib();}
+function genFib(){const n=Math.min(parseInt(document.getElementById('fib-n').value)||15,50);let a=fibMode==='lucas'?2:fibMode==='custom'?parseInt(document.getElementById('fib-a').value)||1:0,b=fibMode==='lucas'?1:fibMode==='custom'?parseInt(document.getElementById('fib-b').value)||1:1;const seq=[a,b];for(let i=2;i<n;i++)seq.push(seq[i-1]+seq[i-2]);document.getElementById('fib-result').innerHTML=seq.slice(0,n).map((v,i)=>`<span class="chip cb" title="F(${i})=${v}">${v}</span>`).join('');}
+function fibLookup(){const idx=parseInt(document.getElementById('fib-idx').value),r=document.getElementById('fib-idx-result');if(isNaN(idx)||idx<0){r.textContent='';return;}let a=0,b=1;if(idx===0){r.textContent='F(0) = 0';return;}for(let i=2;i<=idx;i++){[a,b]=[b,a+b];}r.textContent='F('+idx+') = '+b.toLocaleString();}
+function factorial(n){if(n<=1)return 1;let r=1;for(let i=2;i<=n;i++)r*=i;return r;}
+function calcCombo(){const n=parseInt(document.getElementById('co-n').value),r=parseInt(document.getElementById('co-r').value),c=document.getElementById('co-cards'),d=document.getElementById('co-detail');if(isNaN(n)||isNaN(r)||n<0||r<0){c.innerHTML='';d.textContent='';return;}const P=r>n?0:factorial(n)/factorial(n-r),C=r>n?0:factorial(n)/(factorial(r)*factorial(n-r));c.innerHTML=[{v:P.toLocaleString(),l:'P('+n+','+r+')'},{v:C.toLocaleString(),l:'C('+n+','+r+')'},{v:factorial(n).toLocaleString(),l:n+'!'}].map(({v,l})=>`<div class="sc"><div class="v" style="font-size:14px;">${v}</div><div class="l">${l}</div></div>`).join('');d.className='rb';d.textContent='P('+n+','+r+')='+P.toLocaleString()+'\nC('+n+','+r+')='+C.toLocaleString();}
+function calcFact(){const n=parseInt(document.getElementById('fact-n').value),r=document.getElementById('fact-result');if(isNaN(n)||n<0){r.textContent='';return;}if(n>170){r.className='rb warn';r.textContent=n+'! exceeds float64 range';return;}r.className='rb ok';r.textContent=n+'! = '+factorial(n).toLocaleString();}
+let fracMode='simplify';const fracOps={add:'+',sub:'−',mul:'×',div:'÷'};
+function fracTab(m,el){fracMode=m;document.querySelectorAll('#tool-fraction .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('frac-simplify').style.display=m==='simplify'?'block':'none';document.getElementById('frac-two').style.display=m!=='simplify'?'block':'none';document.getElementById('frac-op-sym').textContent=fracOps[m]||'+';}
+function fracSimplify(){const n=parseInt(document.getElementById('fs-n').value),d=parseInt(document.getElementById('fs-d').value),r=document.getElementById('fs-result');if(isNaN(n)||isNaN(d)){r.textContent='';return;}if(d===0){r.className='rb bad';r.textContent='Denominator ≠ 0';return;}const g=gcd(Math.abs(n),Math.abs(d)),sn=n/g,sd=d/g;r.className='rb';r.textContent=n+'/'+d+' = '+sn+'/'+sd+'  (÷'+g+')\nDecimal: '+(n/d).toFixed(8);}
+function fracTwoCalc(){const n1=parseInt(document.getElementById('ft-n1').value),d1=parseInt(document.getElementById('ft-d1').value),n2=parseInt(document.getElementById('ft-n2').value),d2=parseInt(document.getElementById('ft-d2').value),r=document.getElementById('ft-result');if(isNaN(n1)||isNaN(d1)||isNaN(n2)||isNaN(d2)){return;}if(d1===0||d2===0){r.className='rb bad';r.textContent='Denominator ≠ 0';return;}let rn,rd;if(fracMode==='add'){rn=n1*d2+n2*d1;rd=d1*d2;}else if(fracMode==='sub'){rn=n1*d2-n2*d1;rd=d1*d2;}else if(fracMode==='mul'){rn=n1*n2;rd=d1*d2;}else{if(n2===0){r.className='rb bad';r.textContent='Cannot divide by zero';return;}rn=n1*d2;rd=d1*n2;}const g=gcd(Math.abs(rn),Math.abs(rd)),sn=rn/g,sd=rd/g;document.getElementById('ft-rn').textContent=sn;document.getElementById('ft-rd').textContent=sd;r.className='rb';r.textContent=n1+'/'+d1+' '+fracOps[fracMode]+' '+n2+'/'+d2+' = '+sn+'/'+sd+'\nDecimal: '+(sn/sd).toFixed(8);}
+let logMode='log';
+function logTab(m,el){logMode=m;document.querySelectorAll('#tool-log .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');['log','root','pow'].forEach(x=>document.getElementById('log-'+x).style.display=x===m?'block':'none');}
+function calcLog(){const x=parseFloat(document.getElementById('log-x').value),bs=document.getElementById('log-base').value;if(isNaN(x)||x<=0){document.getElementById('log-res-val').textContent='—';return;}let res,lbl;if(bs==='e'){res=Math.log(x);lbl='ln('+x+')';}else if(bs==='10'){res=Math.log10(x);lbl='log₁₀('+x+')';}else if(bs==='2'){res=Math.log2(x);lbl='log₂('+x+')';}else{const b=parseFloat(document.getElementById('log-custom').value);if(isNaN(b)||b<=0||b===1){document.getElementById('log-res-val').textContent='—';return;}res=Math.log(x)/Math.log(b);lbl='log_'+b+'('+x+')';}document.getElementById('log-res-val').textContent=res.toFixed(8);document.getElementById('log-res-sub').textContent=lbl+'='+res.toFixed(8);}
+function calcRoot(){const x=parseFloat(document.getElementById('root-x').value),n=parseFloat(document.getElementById('root-n').value);if(isNaN(x)||isNaN(n)||n===0){document.getElementById('root-res-val').textContent='—';return;}const res=Math.pow(Math.abs(x),1/n)*(x<0&&n%2!==0?-1:1);document.getElementById('root-res-val').textContent=res.toFixed(8);document.getElementById('root-res-sub').textContent=n+'√'+x+' = '+res.toFixed(8);}
+function calcPow(){const b=parseFloat(document.getElementById('pow-base').value),e=parseFloat(document.getElementById('pow-exp').value);if(isNaN(b)||isNaN(e)){document.getElementById('pow-res-val').textContent='—';return;}const res=Math.pow(b,e);document.getElementById('pow-res-val').textContent=isFinite(res)?res.toLocaleString():'∞';document.getElementById('pow-res-sub').textContent=b+'^'+e+'='+(isFinite(res)?res.toLocaleString():'overflow');}
+function calcStats(){const data=document.getElementById('stat-data').value.split(/[\s,]+/).map(Number).filter(n=>!isNaN(n));const c=document.getElementById('stat-cards'),e=document.getElementById('stat-extra');if(!data.length){c.innerHTML='';e.textContent='';return;}const sorted=[...data].sort((a,b)=>a-b),n=data.length,sum=data.reduce((a,b)=>a+b,0),mean=sum/n;const median=n%2===0?(sorted[n/2-1]+sorted[n/2])/2:sorted[Math.floor(n/2)];const std=Math.sqrt(data.reduce((acc,x)=>acc+(x-mean)**2,0)/n);c.innerHTML=[{v:n,l:'Count'},{v:mean.toFixed(4),l:'Mean'},{v:median,l:'Median'},{v:std.toFixed(4),l:'Std Dev'},{v:sorted[n-1]-sorted[0],l:'Range'},{v:sum.toFixed(2),l:'Sum'}].map(({v,l})=>`<div class="sc"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');e.textContent='Min: '+sorted[0]+'  Max: '+sorted[n-1];}
+function calcTrig(){const ang=parseFloat(document.getElementById('trig-ang').value),unit=document.getElementById('trig-unit').value,c=document.getElementById('trig-cards');if(isNaN(ang)){c.innerHTML='';return;}const rad=unit==='deg'?ang*Math.PI/180:ang;const fns=[{n:'sin',v:Math.sin(rad)},{n:'cos',v:Math.cos(rad)},{n:'tan',v:Math.tan(rad)},{n:'csc',v:1/Math.sin(rad)},{n:'sec',v:1/Math.cos(rad)},{n:'cot',v:1/Math.tan(rad)}];c.innerHTML=fns.map(f=>`<div class="sc"><div class="v" style="font-size:13px;">${isFinite(f.v)?f.v.toFixed(5):'∞'}</div><div class="l">${f.n}(${ang}${unit==='deg'?'°':'r'})</div></div>`).join('');}
+function calcInv(){const v=parseFloat(document.getElementById('inv-val').value),fn=document.getElementById('inv-fn').value,r=document.getElementById('inv-result');if(isNaN(v)){r.textContent='';return;}let res=fn==='arcsin'?Math.asin(v):fn==='arccos'?Math.acos(v):Math.atan(v);if(isNaN(res)){r.className='rb bad';r.textContent='Out of domain';return;}r.className='rb';r.textContent=fn+'('+v+') = '+res.toFixed(6)+' rad = '+(res*180/Math.PI).toFixed(4)+'°';}
+function solveQuad(){const a=parseFloat(document.getElementById('q-a').value),b=parseFloat(document.getElementById('q-b').value),c=parseFloat(document.getElementById('q-c').value),r=document.getElementById('q-result');if(isNaN(a)||isNaN(b)||isNaN(c)){r.className='rb';r.textContent='Enter all three coefficients.';return;}if(a===0){r.className='rb warn';r.textContent='a=0: linear x='+(-c/b).toFixed(6);return;}const disc=b*b-4*a*c;if(disc>0){r.className='rb ok';r.textContent='Two real roots:\n  x₁ = '+((-b+Math.sqrt(disc))/(2*a)).toFixed(6)+'\n  x₂ = '+((-b-Math.sqrt(disc))/(2*a)).toFixed(6)+'\nΔ = '+disc.toFixed(4);}else if(disc===0){r.className='rb';r.textContent='One repeated root:\n  x = '+(-b/(2*a)).toFixed(6);}else{const re=-b/(2*a),im=Math.sqrt(-disc)/(2*a);r.className='rb warn';r.textContent='Two complex roots:\n  x₁ = '+re.toFixed(4)+' + '+im.toFixed(4)+'i\n  x₂ = '+re.toFixed(4)+' − '+im.toFixed(4)+'i';}}
+let matMode='single';
+function matTab(m,el){matMode=m;document.querySelectorAll('#tool-matrix .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');document.getElementById('mat-single').style.display=m==='single'?'block':'none';document.getElementById('mat-two').style.display=m==='two'?'block':'none';document.getElementById('mat-result').textContent='';}
+function gM(px){return[[parseFloat(document.getElementById(px+'-a').value)||0,parseFloat(document.getElementById(px+'-b').value)||0],[parseFloat(document.getElementById(px+'-c').value)||0,parseFloat(document.getElementById(px+'-d').value)||0]];}
+function matCalc(op){const[[a,b],[c,d]]=gM('m'),det=a*d-b*c,r=document.getElementById('mat-result');if(op==='det'){r.className='rb';r.textContent='det = '+det;}else if(op==='inv'){if(det===0){r.className='rb bad';r.textContent='Singular — no inverse';return;}r.className='rb';r.textContent='[['+(d/det).toFixed(4)+', '+(-b/det).toFixed(4)+'],\n ['+(-c/det).toFixed(4)+', '+(a/det).toFixed(4)+']]';}else if(op==='tr'){r.className='rb';r.textContent='[['+a+', '+c+'], ['+b+', '+d+']]\nTrace = '+(a+d);}else if(op==='eig'){const tr=a+d,ds=tr*tr-4*det;if(ds>=0){r.className='rb';r.textContent='λ₁ = '+((tr+Math.sqrt(ds))/2).toFixed(4)+'\nλ₂ = '+((tr-Math.sqrt(ds))/2).toFixed(4);}else{const re=tr/2,im=Math.sqrt(-ds)/2;r.className='rb warn';r.textContent='λ₁ = '+re.toFixed(4)+' + '+im.toFixed(4)+'i\nλ₂ = '+re.toFixed(4)+' − '+im.toFixed(4)+'i';}}}
+function matTwoCalc(){const P=gM('p'),Q=gM('q'),op=document.getElementById('mat-op').value;let res;if(op==='add')res=[[P[0][0]+Q[0][0],P[0][1]+Q[0][1]],[P[1][0]+Q[1][0],P[1][1]+Q[1][1]]];else if(op==='sub')res=[[P[0][0]-Q[0][0],P[0][1]-Q[0][1]],[P[1][0]-Q[1][0],P[1][1]-Q[1][1]]];else res=[[P[0][0]*Q[0][0]+P[0][1]*Q[1][0],P[0][0]*Q[0][1]+P[0][1]*Q[1][1]],[P[1][0]*Q[0][0]+P[1][1]*Q[1][0],P[1][0]*Q[0][1]+P[1][1]*Q[1][1]]];const r=document.getElementById('mat-result');r.className='rb';r.textContent='[['+res[0][0].toFixed(4)+', '+res[0][1].toFixed(4)+'],\n ['+res[1][0].toFixed(4)+', '+res[1][1].toFixed(4)+']]';}
+const shapeInputs={circle:[{id:'r',label:'Radius'}],rectangle:[{id:'w',label:'Width'},{id:'h',label:'Height'}],triangle:[{id:'a',label:'Side a'},{id:'b',label:'Side b'},{id:'c',label:'Side c'}],sphere:[{id:'r',label:'Radius'}],cylinder:[{id:'r',label:'Radius'},{id:'h',label:'Height'}],cone:[{id:'r',label:'Radius'},{id:'h',label:'Height'}],trapezoid:[{id:'a',label:'Side a (base)'},{id:'b',label:'Side b (top)'},{id:'h',label:'Height'}],ellipse:[{id:'a',label:'Semi-major (a)'},{id:'b',label:'Semi-minor (b)'}]};
+function updateShapeInputs(){const t=document.getElementById('sh-type').value,c=document.getElementById('sh-inputs');c.innerHTML=`<div class="row">${shapeInputs[t].map(f=>`<div class="field"><label>${f.label}</label><input type="number" id="sh-${f.id}" placeholder="0" min="0"></div>`).join('')}</div>`;document.getElementById('sh-result').textContent='';}
+function v(id){return parseFloat(document.getElementById('sh-'+id)?.value)||0;}
+function calcShape(){const t=document.getElementById('sh-type').value,r=document.getElementById('sh-result'),pi=Math.PI;let lines=[];if(t==='circle'){const r_=v('r');lines=['Area = πr² = '+(pi*r_*r_).toFixed(6),'Circumference = 2πr = '+(2*pi*r_).toFixed(6)];}else if(t==='rectangle'){const w=v('w'),h=v('h');lines=['Area = '+(w*h).toFixed(6),'Perimeter = '+(2*(w+h)).toFixed(6),'Diagonal = '+Math.sqrt(w*w+h*h).toFixed(6)];}else if(t==='triangle'){const a=v('a'),b=v('b'),c=v('c');const s=(a+b+c)/2;lines=['Perimeter = '+(a+b+c).toFixed(6),'Area (Heron) = '+Math.sqrt(s*(s-a)*(s-b)*(s-c)).toFixed(6)];}else if(t==='sphere'){const r_=v('r');lines=['Volume = '+(4/3*pi*r_**3).toFixed(6),'Surface area = '+(4*pi*r_*r_).toFixed(6)];}else if(t==='cylinder'){const r_=v('r'),h=v('h');lines=['Volume = '+(pi*r_*r_*h).toFixed(6),'Lateral SA = '+(2*pi*r_*h).toFixed(6),'Total SA = '+(2*pi*r_*(r_+h)).toFixed(6)];}else if(t==='cone'){const r_=v('r'),h=v('h'),l=Math.sqrt(r_*r_+h*h);lines=['Volume = '+(pi*r_*r_*h/3).toFixed(6),'Slant height = '+l.toFixed(6),'Total SA = '+(pi*r_*(r_+l)).toFixed(6)];}else if(t==='trapezoid'){const a=v('a'),b=v('b'),h=v('h');lines=['Area = '+((a+b)/2*h).toFixed(6)];}else if(t==='ellipse'){const a=v('a'),b=v('b');lines=['Area = '+(pi*a*b).toFixed(6),'Perimeter ≈ '+(2*pi*Math.sqrt((a*a+b*b)/2)).toFixed(6)];}r.className='rb';r.textContent=lines.join('\n');}
+function calcPyth(){const av=document.getElementById('py-a').value,bv=document.getElementById('py-b').value,cv=document.getElementById('py-c').value;const a=parseFloat(av),b=parseFloat(bv),c=parseFloat(cv);const r=document.getElementById('py-result');const filled=[av,bv,cv].filter(x=>x!=='').length;if(filled<2){r.className='rb';r.textContent='Fill in any two fields.';return;}if(filled===3){const check=Math.abs(a*a+b*b-c*c)<0.001;r.className=check?'rb ok':'rb bad';r.textContent=check?'✓ Valid right triangle!':'✗ Not a right triangle (a²+b²='+( a*a+b*b).toFixed(4)+', c²='+(c*c).toFixed(4)+')';return;}if(av===''&&bv!==''&&cv!==''){const res=Math.sqrt(c*c-b*b);document.getElementById('py-a').value=res.toFixed(6);r.className='rb ok';r.textContent='a = '+res.toFixed(6);}else if(bv===''&&av!==''&&cv!==''){const res=Math.sqrt(c*c-a*a);document.getElementById('py-b').value=res.toFixed(6);r.className='rb ok';r.textContent='b = '+res.toFixed(6);}else if(cv===''&&av!==''&&bv!==''){const res=Math.sqrt(a*a+b*b);document.getElementById('py-c').value=res.toFixed(6);r.className='rb ok';r.textContent='c = √('+a+'²+'+b+'²) = '+res.toFixed(6);}}
+function calcCI(){const P=parseFloat(document.getElementById('ci-p').value),r=parseFloat(document.getElementById('ci-r').value)/100,t=parseFloat(document.getElementById('ci-t').value),n=parseInt(document.getElementById('ci-n').value);const c=document.getElementById('ci-cards');if(isNaN(P)||isNaN(r)||isNaN(t)){c.innerHTML='';return;}const A=P*Math.pow(1+r/n,n*t);c.innerHTML=[{v:'$'+A.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}),l:'Final amount'},{v:'$'+(A-P).toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2}),l:'Interest earned'},{v:((A/P-1)*100).toFixed(2)+'%',l:'Total return'}].map(({v,l})=>`<div class="sc"><div class="v" style="font-size:14px;">${v}</div><div class="l">${l}</div></div>`).join('');const svg=document.getElementById('ci-svg');const pts1=[],pts2=[],steps=50;for(let i=0;i<=steps;i++){const yr=t*i/steps;pts1.push({x:yr,y:P});pts2.push({x:yr,y:P*Math.pow(1+r/n,n*yr)});}const yMax=Math.max(...pts2.map(p=>p.y));const W=420,H=160,pad=10;function toSVG(pts){return pts.map((p,i)=>{const sx=pad+(p.x/t)*(W-2*pad),sy=(H-pad)-(p.y/yMax)*(H-2*pad);return(i===0?'M':'L')+sx.toFixed(1)+','+sy.toFixed(1);}).join(' ');}svg.innerHTML=`<path d="${toSVG(pts1)}" fill="none" stroke="rgba(108,142,255,0.3)" stroke-width="1.5" stroke-dasharray="4,4"/><path d="${toSVG(pts2)}" fill="none" stroke="#6c8eff" stroke-width="2"/><text x="${pad}" y="${H-2}" fill="#7a84a8" font-size="9" font-family="monospace">0</text><text x="${W-pad-16}" y="${H-2}" fill="#7a84a8" font-size="9" font-family="monospace">${t}yr</text><text x="${pad}" y="10" fill="#4ade80" font-size="9" font-family="monospace">$${Math.round(yMax).toLocaleString()}</text>`;}
+function setTip(val){document.getElementById('ts-tip').value=val;calcTip();}
+function calcTip(){const bill=parseFloat(document.getElementById('ts-bill').value),tip=parseFloat(document.getElementById('ts-tip').value),ppl=parseInt(document.getElementById('ts-ppl').value);const c=document.getElementById('ts-cards');if(isNaN(bill)||isNaN(tip)){c.innerHTML='';return;}const tipAmt=bill*tip/100,total=bill+tipAmt,pp=total/(ppl||1);c.innerHTML=[{v:'$'+tipAmt.toFixed(2),l:'Tip amount'},{v:'$'+total.toFixed(2),l:'Total bill'},{v:'$'+pp.toFixed(2),l:'Per person (÷'+(ppl||1)+')'}].map(({v,l})=>`<div class="sc"><div class="v" style="font-size:16px;">${v}</div><div class="l">${l}</div></div>`).join('');}
+function buildTruthTable(){const raw=document.getElementById('tt-expr').value.trim(),c=document.getElementById('tt-result');if(!raw){c.innerHTML='';return;}const vars=[...new Set(raw.toUpperCase().match(/\b[A-D]\b/g)||[])].sort().slice(0,4);if(!vars.length){c.innerHTML='<div class="rb bad">Use variables A–D</div>';return;}const rows=[];const n=Math.pow(2,vars.length);for(let i=0;i<n;i++){const vals={};vars.forEach((v,j)=>{vals[v]=!!(i&(1<<(vars.length-1-j)));});let e=raw.toUpperCase().replace(/\bXNOR\b/g,'===').replace(/\bXOR\b/g,'!==').replace(/\bAND\b/g,'&&').replace(/\bOR\b/g,'||').replace(/\bNOT\s*/g,'!');vars.forEach(v=>{e=e.replace(new RegExp('\\b'+v+'\\b','g'),vals[v]?'true':'false');});let result;try{result=!!eval(e);}catch(err){c.innerHTML='<div class="rb bad">Syntax error</div>';return;}rows.push({vals,result});}const th=vars.map(v=>`<th>${v}</th>`).join('')+'<th style="color:var(--accent);">Result</th>';const trs=rows.map(r=>`<tr>${vars.map(v=>`<td class="${r.vals[v]?'tt-true':'tt-false'}">${r.vals[v]?'T':'F'}</td>`).join('')}<td class="${r.result?'tt-true':'tt-false'}" style="font-weight:600;">${r.result?'T':'F'}</td></tr>`).join('');c.innerHTML='<table class="tt-table"><thead><tr>'+th+'</tr></thead><tbody>'+trs+'</tbody></table>';}
+function calcSets(){const parseSet=s=>new Set(s.split(',').map(x=>x.trim()).filter(Boolean));const A=parseSet(document.getElementById('so-a').value),B=parseSet(document.getElementById('so-b').value);const c=document.getElementById('so-result');if(!A.size&&!B.size){c.innerHTML='';return;}const union=new Set([...A,...B]),inter=new Set([...A].filter(x=>B.has(x))),diffAB=new Set([...A].filter(x=>!B.has(x))),diffBA=new Set([...B].filter(x=>!A.has(x))),sym=new Set([...diffAB,...diffBA]);const row=(label,set,cls)=>`<div style="margin-bottom:10px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">${label} (${set.size})</div><div>${[...set].map(x=>`<span class="chip ${cls}">${x}</span>`).join('')||'<span style="font-size:12px;color:var(--muted);">∅ empty</span>'}</div></div>`;c.innerHTML=row('A ∪ B — union',union,'cb')+row('A ∩ B — intersection',inter,'cg')+row('A \\ B — A minus B',diffAB,'cb')+row('B \\ A — B minus A',diffBA,'cb')+row('A △ B — symmetric difference',sym,'cb');}
+function erf(x){const t=1/(1+0.3275911*Math.abs(x));const p=t*(0.254829592+t*(-0.284496736+t*(1.421413741+t*(-1.453152027+t*1.061405429))));const r=1-p*Math.exp(-x*x);return x>=0?r:-r;}
+function normCDF(x,mu,sig){return 0.5*(1+erf((x-mu)/(sig*Math.sqrt(2))));}
+function normPDF(x,mu,sig){return Math.exp(-0.5*((x-mu)/sig)**2)/(sig*Math.sqrt(2*Math.PI));}
+function calcNorm(){const mu=parseFloat(document.getElementById('nd-mu').value)||0,sig=parseFloat(document.getElementById('nd-sigma').value)||1,x=parseFloat(document.getElementById('nd-x').value);const c=document.getElementById('nd-cards');if(isNaN(x)||sig<=0){c.innerHTML='';return;}const z=(x-mu)/sig,pLt=normCDF(x,mu,sig);c.innerHTML=[{v:z.toFixed(4),l:'Z-score'},{v:(pLt*100).toFixed(2)+'%',l:'P(X < x)'},{v:((1-pLt)*100).toFixed(2)+'%',l:'P(X > x)'}].map(({v,l})=>`<div class="sc"><div class="v" style="font-size:15px;">${v}</div><div class="l">${l}</div></div>`).join('');const svg=document.getElementById('nd-svg');const W=420,H=140,pad=12,lo=mu-4*sig,hi=mu+4*sig;const pts=[],steps=200;const maxPDF=normPDF(mu,mu,sig);for(let i=0;i<=steps;i++){const px=lo+i*(hi-lo)/steps;pts.push({x:px,y:normPDF(px,mu,sig)});}function toS(pts2){return pts2.map((p,i)=>{const sx=pad+(p.x-lo)/(hi-lo)*(W-2*pad),sy=(H-pad)-(p.y/maxPDF)*(H-2*pad);return(i===0?'M':'L')+sx.toFixed(1)+','+sy.toFixed(1);}).join(' ');}const shadePts=pts.filter(p=>p.x<=x);const xSVG=(pad+(x-lo)/(hi-lo)*(W-2*pad)).toFixed(1);const shadeD=shadePts.length>1?toS(shadePts)+'L'+xSVG+','+(H-pad)+' L'+(pad+(shadePts[0].x-lo)/(hi-lo)*(W-2*pad)).toFixed(1)+','+(H-pad)+' Z':'';svg.innerHTML=`<path d="${shadeD}" fill="rgba(108,142,255,0.2)" stroke="none"/><path d="${toS(pts)}" fill="none" stroke="#6c8eff" stroke-width="2"/><line x1="${xSVG}" y1="${pad}" x2="${xSVG}" y2="${H-pad}" stroke="rgba(79,209,197,0.7)" stroke-width="1.5" stroke-dasharray="4,3"/><text x="${xSVG}" y="${pad-2}" fill="#4fd1c5" font-size="9" font-family="monospace" text-anchor="middle">x=${x}</text>`;}
+function calcRegression(){const raw=document.getElementById('lr-data').value.trim(),c=document.getElementById('lr-cards'),sv=document.getElementById('lr-svg'),eq=document.getElementById('lr-eq');if(!raw){c.innerHTML='';sv.innerHTML='';eq.style.display='none';return;}const pairs=raw.split(/[\n;]+/).flatMap(line=>line.split(/\s+/).filter(Boolean)).join(' ').match(/-?[\d.]+,-?[\d.]+/g);if(!pairs||pairs.length<2){c.innerHTML='';eq.style.display='none';return;}const xs=[],ys=[];pairs.forEach(p=>{const[a,b]=p.split(',').map(Number);xs.push(a);ys.push(b);});const n=xs.length,mx=xs.reduce((a,b)=>a+b)/n,my=ys.reduce((a,b)=>a+b)/n;const num=xs.reduce((s,x,i)=>s+(x-mx)*(ys[i]-my),0),den=xs.reduce((s,x)=>s+(x-mx)**2,0);if(den===0){c.innerHTML='';return;}const m=num/den,b=my-m*mx;const ssr=ys.reduce((s,y,i)=>s+(y-(m*xs[i]+b))**2,0),sst=ys.reduce((s,y)=>s+(y-my)**2,0),r2=sst===0?1:1-ssr/sst;c.innerHTML=[{v:m.toFixed(4),l:'Slope'},{v:b.toFixed(4),l:'Intercept'},{v:r2.toFixed(4),l:'R²'}].map(({v,l})=>`<div class="sc"><div class="v" style="font-size:15px;">${v}</div><div class="l">${l}</div></div>`).join('');eq.style.display='block';eq.className='rb';eq.textContent='y = '+m.toFixed(4)+'x + '+b.toFixed(4)+'\nR² = '+r2.toFixed(4);const W=420,H=200,pad=24,xMin=Math.min(...xs),xMax=Math.max(...xs),yMin=Math.min(...ys),yMax=Math.max(...ys),xRange=xMax-xMin||1,yRange=yMax-yMin||1;function px(x){return pad+(x-xMin)/xRange*(W-2*pad);}function py(y){return(H-pad)-(y-yMin)/yRange*(H-2*pad);}const dots=xs.map((x,i)=>`<circle cx="${px(x).toFixed(1)}" cy="${py(ys[i]).toFixed(1)}" r="4" fill="#6c8eff" opacity="0.8"/>`).join('');sv.innerHTML=`<line x1="${px(xMin).toFixed(1)}" y1="${py(m*xMin+b).toFixed(1)}" x2="${px(xMax).toFixed(1)}" y2="${py(m*xMax+b).toFixed(1)}" stroke="#4fd1c5" stroke-width="1.5" stroke-dasharray="5,3"/>${dots}<text x="${pad}" y="${H-4}" fill="#7a84a8" font-size="9" font-family="monospace">n=${n}</text>`;}
+function buildPascal(){const n=Math.min(parseInt(document.getElementById('pas-n').value)||10,16),hl=document.getElementById('pas-hl').value;const tri=[[1]];for(let i=1;i<n;i++){const prev=tri[i-1],row=[1];for(let j=1;j<prev.length;j++)row.push(prev[j-1]+prev[j]);row.push(1);tri.push(row);}const fibNums=new Set();let fa=0,fb=1;for(let i=0;i<25;i++){fibNums.add(fb);[fa,fb]=[fb,fa+fb];}const wrap=document.getElementById('pas-wrap');wrap.innerHTML=tri.map((row)=>`<div class="pascal-row">${row.map((val)=>{let bg='var(--surface2)',col='var(--muted)';if(hl==='even'&&val%2===0){bg='rgba(108,142,255,.25)';col='var(--accent)';}else if(hl==='fib'&&fibNums.has(val)&&val>1){bg='rgba(79,209,197,.2)';col='var(--accent2)';}return`<div class="pc" style="background:${bg};color:${col};">${val}</div>`;}).join('')}</div>`).join('');const info=document.getElementById('pas-info');if(hl==='pow2'){info.style.display='block';info.className='rb';info.textContent='Row sums:\n'+tri.map(r=>r.reduce((a,b)=>a+b,0)).join(', ');}else{info.style.display='none';}}
+function runCollatz(){const n=parseInt(document.getElementById('col-n').value);const c=document.getElementById('col-cards'),chart=document.getElementById('col-chart'),seq=document.getElementById('col-seq');if(isNaN(n)||n<1){c.innerHTML='';chart.innerHTML='';seq.textContent='';return;}const s=[n];let x=n,steps=0;while(x!==1&&steps<10000){x=x%2===0?x/2:3*x+1;s.push(x);steps++;}const maxV=Math.max(...s);c.innerHTML=[{v:s.length-1,l:'Steps'},{v:maxV.toLocaleString(),l:'Peak'},{v:'1',l:'Reached'}].map(({v,l})=>`<div class="sc"><div class="v">${v}</div><div class="l">${l}</div></div>`).join('');const sample=s.length>200?s.filter((_,i)=>i%Math.ceil(s.length/200)===0):s;chart.innerHTML=sample.map(v=>`<div class="cbar" style="height:${Math.max(4,(v/maxV*120)).toFixed(1)}px;" title="${v}"></div>`).join('');seq.textContent=s.join(' → ');}
+function pctTab(i,el){document.querySelectorAll('#pct-tabs .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');[0,1,2].forEach(j=>document.getElementById('pct-panel-'+j).style.display=j===i?'block':'none');}
+function calcPct0(){const p=parseFloat(document.getElementById('pct0-p').value),v=parseFloat(document.getElementById('pct0-v').value),r=document.getElementById('pct0-r');if(isNaN(p)||isNaN(v)){r.textContent='';return;}r.className='rb ok';r.textContent=p+'% of '+v+' = '+(p/100*v).toFixed(6);}
+function calcPct1(){const a=parseFloat(document.getElementById('pct1-a').value),b=parseFloat(document.getElementById('pct1-b').value),r=document.getElementById('pct1-r');if(isNaN(a)||isNaN(b)||b===0){r.textContent='';return;}r.className='rb ok';r.textContent=a+' is '+(a/b*100).toFixed(4)+'% of '+b;}
+function calcPct2(){const a=parseFloat(document.getElementById('pct2-a').value),b=parseFloat(document.getElementById('pct2-b').value),r=document.getElementById('pct2-r');if(isNaN(a)||isNaN(b)||a===0){r.textContent='';return;}const ch=(b-a)/Math.abs(a)*100;r.className=ch>=0?'rb ok':'rb bad';r.textContent=(ch>=0?'+':'')+ch.toFixed(4)+'% change from '+a+' to '+b;}
+const UNITS={length:{m:1,km:1000,cm:0.01,mm:0.001,mi:1609.344,yd:0.9144,ft:0.3048,in:0.0254},mass:{kg:1,g:0.001,mg:1e-6,lb:0.453592,oz:0.028350,t:1000},area:{'m²':1,'km²':1e6,'cm²':0.0001,'mi²':2589988,'acre':4046.86,'ha':10000,'ft²':0.0929},speed:{'m/s':1,'km/h':1/3.6,'mph':0.44704,'knot':0.514444},time:{s:1,min:60,h:3600,d:86400,wk:604800,mo:2629800,yr:31557600,ms:0.001},digital:{B:1,KB:1024,MB:1048576,GB:1073741824,TB:1099511627776}};
+const TC={'C→F':v=>v*9/5+32,'F→C':v=>(v-32)*5/9,'C→K':v=>v+273.15,'K→C':v=>v-273.15,'F→K':v=>(v-32)*5/9+273.15,'K→F':v=>(v-273.15)*9/5+32};
+function updateUnitLists(){const cat=document.getElementById('uc-cat').value,fr=document.getElementById('uc-from'),to=document.getElementById('uc-to');const opts=cat==='temp'?['°C','°F','K']:Object.keys(UNITS[cat]);fr.innerHTML=opts.map(u=>`<option>${u}</option>`).join('');to.innerHTML=opts.map((u,i)=>`<option ${i===1?'selected':''}>${u}</option>`).join('');convertUnit();}
+function convertUnit(){const cat=document.getElementById('uc-cat').value,val=parseFloat(document.getElementById('uc-val').value),fr=document.getElementById('uc-from').value,to=document.getElementById('uc-to').value;if(isNaN(val)){document.getElementById('uc-res-val').textContent='—';return;}let res;if(cat==='temp'){const fn=TC[fr.replace('°','')+' → '+to.replace('°','')];res=fn?fn(val):val;}else{res=val*UNITS[cat][fr]/UNITS[cat][to];}document.getElementById('uc-res-val').textContent=parseFloat(res.toPrecision(8)).toLocaleString()+' '+to;document.getElementById('uc-res-from').textContent=val+' '+fr+' = '+parseFloat(res.toPrecision(8)).toLocaleString()+' '+to;}
+let rngMode='int';
+function rngTab(m,el){rngMode=m;document.querySelectorAll('#tool-rng .tab').forEach(t=>t.classList.remove('active'));el.classList.add('active');['int','float','dice','list'].forEach(x=>document.getElementById('rng-'+x).style.display=x===m?'block':'none');document.getElementById('rng-big').style.display='none';document.getElementById('rng-result').style.display='none';document.getElementById('dice-faces').innerHTML='';}
+function rngGenInt(){const mn=parseInt(document.getElementById('rng-min').value)||1,mx=parseInt(document.getElementById('rng-max').value)||100,cnt=Math.min(parseInt(document.getElementById('rng-count').value)||1,50);if(cnt===1){document.getElementById('rng-big').style.display='block';document.getElementById('rng-big').textContent=Math.floor(Math.random()*(mx-mn+1))+mn;document.getElementById('rng-result').style.display='none';}else{const nums=Array.from({length:cnt},()=>Math.floor(Math.random()*(mx-mn+1))+mn);document.getElementById('rng-big').style.display='none';document.getElementById('rng-result').style.display='block';document.getElementById('rng-result').className='rb';document.getElementById('rng-result').textContent=nums.join(', ')+'\n\nSum: '+nums.reduce((a,b)=>a+b,0)+'  Min: '+Math.min(...nums)+'  Max: '+Math.max(...nums);}}
+function rngGenFloat(){const mn=parseFloat(document.getElementById('rngf-min').value)||0,mx=parseFloat(document.getElementById('rngf-max').value)||1,dec=parseInt(document.getElementById('rngf-dec').value)||4;document.getElementById('rng-big').style.display='block';document.getElementById('rng-big').style.fontSize='32px';document.getElementById('rng-big').textContent=(Math.random()*(mx-mn)+mn).toFixed(dec);document.getElementById('rng-result').style.display='none';}
+function rollDice(){const sides=parseInt(document.getElementById('dice-type').value),cnt=Math.min(parseInt(document.getElementById('dice-count').value)||1,20);const rolls=Array.from({length:cnt},()=>Math.floor(Math.random()*sides)+1);document.getElementById('rng-big').style.display='none';document.getElementById('rng-result').style.display='block';document.getElementById('rng-result').className='rb ok';document.getElementById('rng-result').textContent=cnt+'d'+sides+': ['+rolls.join(', ')+']\nTotal: '+rolls.reduce((a,b)=>a+b,0)+'  Avg: '+(rolls.reduce((a,b)=>a+b,0)/cnt).toFixed(2);document.getElementById('dice-faces').innerHTML=rolls.map(r=>`<div style="width:38px;height:38px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:600;color:var(--accent);">${r}</div>`).join('');}
+function rngPick(){const items=document.getElementById('rng-items').value.split(',').map(s=>s.trim()).filter(Boolean),cnt=Math.min(parseInt(document.getElementById('rng-pick').value)||1,items.length);if(!items.length)return;const picked=[...items].sort(()=>Math.random()-.5).slice(0,cnt);if(cnt===1){document.getElementById('rng-big').style.display='block';document.getElementById('rng-big').style.fontSize='26px';document.getElementById('rng-big').textContent=picked[0];document.getElementById('rng-result').style.display='none';}else{document.getElementById('rng-big').style.display='none';document.getElementById('rng-result').style.display='block';document.getElementById('rng-result').className='rb ok';document.getElementById('rng-result').textContent='Picked:\n'+picked.join('\n');}}
+updateUnitLists();
+updateShapeInputs();
+genFib();
+buildPascal();
+calcNorm();
+setTimeout(()=>{logTab('log',document.querySelector('#tool-log .tab'));},50);
+</script>
+</body>
+</html>
